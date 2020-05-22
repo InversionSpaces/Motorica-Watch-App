@@ -1,6 +1,15 @@
 #include "motorica.h"
 #include "main_menu.h"
 
+void
+get_res_path(const char* path, char* out, int max_len) {
+	char* res_path = app_get_resource_path();
+	if (res_path) {
+		snprintf(out, max_len, "%s%s", res_path, path);
+		free(res_path);
+	}
+}
+
 static void
 win_delete_request_cb(void *data, Evas_Object *obj, void *event_info)
 {
@@ -11,8 +20,11 @@ static void
 win_back_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	appdata_s *ad = data;
-	/* Let window go to hide state. */
-	elm_win_lower(ad->win);
+	if (ad->depth == 1) elm_win_lower(ad->win);
+	else {
+		elm_naviframe_item_pop(ad->navif);
+		ad->depth--;
+	}
 }
 
 static void
@@ -65,6 +77,7 @@ app_create(void *data)
 	appdata_s *ad = data;
 
 	create_base_gui(ad);
+	ad->depth = 0;
 	push_menu(ad);
 
 	return true;

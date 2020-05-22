@@ -9,6 +9,7 @@
 #define MAIN_MENU_H_
 
 #include "motorica.h"
+#include "gestures.h"
 
 void push_menu(appdata_s* ad);
 

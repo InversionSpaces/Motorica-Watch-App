@@ -23,6 +23,13 @@ typedef struct appdata {
 	Evas_Object *navif;
 	Eext_Circle_Surface *csurf;
 	/* -------- */
+
+	int depth;
 } appdata_s;
+
+void
+get_res_path(const char* path, char* out, int max_len);
+
+#define SIZE(x) sizeof(x) / sizeof(0[x])
 
 #endif /* __motorica_H__ */

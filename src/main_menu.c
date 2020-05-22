@@ -7,11 +7,9 @@
 
 #include "main_menu.h"
 
-#define SIZE(x) sizeof(x) / sizeof(0[x])
-
 void
 gestures_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
-
+	push_gestures((appdata_s*)data);
 }
 
 typedef struct {
@@ -99,52 +97,14 @@ push_menu(appdata_s* ad) {
 	eext_circle_object_genlist_scroller_policy_set(cgen_list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
 	eext_rotary_object_event_activated_set(cgen_list, EINA_TRUE);
 
-	/*
-	//
-	Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
-
-	itc->item_style = "title";
-	itc->func.text_get = data_get_title_text;
-
-	elm_genlist_item_append(gen_list, itc, NULL, NULL, ELM_GENLIST_ITEM_NONE, NULL, NULL);
-	elm_genlist_item_class_free(itc);
-	//
-
-	//
-	itc = elm_genlist_item_class_new();
-
-	itc->item_style = "1text";
-	itc->func.text_get = data_get_entry_text;
-
-	elm_genlist_item_append(gen_list, itc, (void*)1, NULL, ELM_GENLIST_ITEM_NONE, NULL, NULL);
-	elm_genlist_item_class_free(itc);
-	//
-
-	//
-	itc = elm_genlist_item_class_new();
-
-	itc->item_style = "1text";
-	itc->func.text_get = data_get_entry_text;
-
-	elm_genlist_item_append(gen_list, itc, (void*)2, NULL, ELM_GENLIST_ITEM_NONE, NULL, NULL);
-	elm_genlist_item_class_free(itc);
-	//
-
-	//
-	itc = elm_genlist_item_class_new();
-
-	elm_genlist_item_append(gen_list, itc, NULL, NULL, ELM_GENLIST_ITEM_NONE, NULL, NULL);
-	elm_genlist_item_class_free(itc);
-	//
-	*/
-
 	for (int i = 0; i < SIZE(mentries); ++i) {
 		mentry_s* entry = mentries + i;
-		glist_append(gen_list, entry->style, (void*)i, entry->clicked_cb, (void*)i);
+		glist_append(gen_list, entry->style, (void*)i, entry->clicked_cb, (void*)ad);
 	}
 
 	evas_object_show(gen_list);
 
 	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, gen_list, "empty");
+	ad->depth++;
 }
 
