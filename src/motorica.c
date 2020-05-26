@@ -20,10 +20,15 @@ static void
 win_back_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	appdata_s *ad = data;
-	if (ad->depth == 1) elm_win_lower(ad->win);
-	else {
+	switch (ad->state) {
+	case DEVICES:
+	case GESTURES:
 		elm_naviframe_item_pop(ad->navif);
-		ad->depth--;
+		push_menu(ad);
+		break;
+	case MAIN_MENU:
+		elm_win_lower(ad->win);
+		break;
 	}
 }
 
@@ -52,14 +57,14 @@ create_base_gui(appdata_s *ad)
 
 	evas_object_show(ad->conform);
 
-	/* Circle surface */
-	ad->csurf = eext_circle_surface_conformant_add(ad->conform);
-
 	/* Naviframe */
 	ad->navif = elm_naviframe_add(ad->conform);
 
 	elm_object_content_set(ad->conform, ad->navif);
 	evas_object_show(ad->navif);
+
+	/* Circle surface */
+	ad->csurf = eext_circle_surface_conformant_add(ad->navif);
 
 	/* Show window after base gui is set up */
 	evas_object_show(ad->win);
@@ -77,7 +82,7 @@ app_create(void *data)
 	appdata_s *ad = data;
 
 	create_base_gui(ad);
-	ad->depth = 0;
+	bt_init();
 	push_menu(ad);
 
 	return true;

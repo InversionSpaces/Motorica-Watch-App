@@ -12,5 +12,4 @@
 
 void push_gestures(appdata_s *ad);
 
-
 #endif /* GESTURES_H_ */

@@ -7,104 +7,44 @@
 
 #include "main_menu.h"
 
-void
+static void
 gestures_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
-	push_gestures((appdata_s*)data);
+	appdata_s *ad = data;
+
+	elm_naviframe_item_pop(ad->navif);
+
+	push_gestures(ad);
 }
 
-typedef struct {
-	const char* text;
-	const char* style;
-	Evas_Smart_Cb clicked_cb;
-} mentry_s;
+static void
+devices_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
+	appdata_s *ad = data;
 
-mentry_s mentries[] = {
+	if (bt_is_on()) {
+		elm_naviframe_item_pop(ad->navif);
+
+		push_devices(ad);
+	}
+	else
+		bt_onoff_operation();
+}
+
+static glist_entry_s entries[] = {
 		{"Motorica", "title", NULL},
-		{"Devices", "entry", NULL},
+		{"Devices", "entry", devices_clicked_cb},
 		{"Gestures", "entry", gestures_clicked_cb},
 		{NULL, "padding", NULL}
 };
 
-static char*
-mentry_text_get(void *data, Evas_Object *obj, const char *part) {
-	int index = (int)data;
-	if (index < 0 || index >= SIZE(mentries)) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "index out of bounds");
-		return NULL;
-	}
-
-	const char* text = mentries[index].text;
-
-	if (text == NULL) return NULL;
-	return strdup(text);
-}
-
-Elm_Genlist_Item_Class*
-glist_itc_fill(Elm_Genlist_Item_Class *itc, const char *style) {
-	if (itc == NULL) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "itc is NULL");
-		return NULL;
-	}
-	if (style == NULL) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "style is NULL");
-		return NULL;
-	}
-
-	if (!strcmp(style, "title")) {
-		itc->item_style = "title";
-		itc->func.text_get = mentry_text_get;
-	}
-	else if (!strcmp(style, "entry")) {
-		itc->item_style = "1text";
-		itc->func.text_get = mentry_text_get;
-	}
-	else if (!strcmp(style, "padding")) {
-		/* nothing to do */
-	}
-	else {
-		dlog_print(DLOG_ERROR, LOG_TAG, "Unknown style %s", style);
-	}
-
-	return itc;
-}
-
-Elm_Object_Item*
-glist_append(Evas_Object *glist, const char *style, const void *data,
-		Evas_Smart_Cb clicked_cb, const void *cb_data) {
-	if (glist == NULL) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "glist is NULL");
-		return NULL;
-	}
-
-	if (style == NULL) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "style is NULL");
-		return NULL;
-	}
-
-	Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
-	glist_itc_fill(itc, style);
-	Elm_Object_Item* item = elm_genlist_item_append(glist, itc, data, NULL, ELM_GENLIST_ITEM_NONE, clicked_cb, cb_data);
-	elm_genlist_item_class_free(itc);
-
-	return item;
-}
-
 void
 push_menu(appdata_s* ad) {
-	Evas_Object *gen_list = elm_genlist_add(ad->navif);
-	Evas_Object *cgen_list = eext_circle_object_genlist_add(gen_list, ad->csurf);
+	size_t size = sizeof(entries) / sizeof(glist_entry_s);
+	lists_s ret = glist_create(ad, entries, size);
+	ad->glist = ret.glist;
+	ad->circle_glist = ret.circle_glist;
 
-	eext_circle_object_genlist_scroller_policy_set(cgen_list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
-	eext_rotary_object_event_activated_set(cgen_list, EINA_TRUE);
+	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->glist, "empty");
 
-	for (int i = 0; i < SIZE(mentries); ++i) {
-		mentry_s* entry = mentries + i;
-		glist_append(gen_list, entry->style, (void*)i, entry->clicked_cb, (void*)ad);
-	}
-
-	evas_object_show(gen_list);
-
-	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, gen_list, "empty");
-	ad->depth++;
+	ad->state = MAIN_MENU;
 }
 

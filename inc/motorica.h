@@ -7,13 +7,15 @@
 #include <efl_extension.h>
 #include <dlog.h>
 
+#include "bt.h"
+
 #ifdef  LOG_TAG
 #undef  LOG_TAG
 #endif
 #define LOG_TAG "motorica"
 
 #if !defined(PACKAGE)
-#define PACKAGE "org.example.motorica"
+#define PACKAGE "org.motorica"
 #endif
 
 typedef struct appdata {
@@ -24,7 +26,26 @@ typedef struct appdata {
 	Eext_Circle_Surface *csurf;
 	/* -------- */
 
-	int depth;
+	/* Main menu */
+	Evas_Object *glist;
+	Evas_Object *circle_glist;
+
+	/* Gestures */
+	Evas_Object *gestures_box;
+	Evas_Object *gestures_scroller;
+	Evas_Object *gestures_circle_scroller;
+	Evas_Object *gestures_padding_start;
+	Evas_Object *gestures_padding_end;
+
+	/* Devices */
+	Evas_Object *devices_glist;
+	Evas_Object *devices_circle_glist;
+
+	enum {
+		MAIN_MENU,
+		DEVICES,
+		GESTURES
+	} state;
 } appdata_s;
 
 void
