@@ -6,6 +6,7 @@
 #include <system_settings.h>
 #include <efl_extension.h>
 #include <dlog.h>
+#include <glib.h>
 
 #include "glist.h"
 
@@ -31,6 +32,12 @@ typedef struct appdata {
 
 	/* Devices */
 	glist_s dev_list;
+	GList *discovered;
+
+	enum {
+		IDLE,
+		DISCOVERING
+	} discovery_state;
 
 	/* Gestures */
 	Evas_Object *gestures_box;
@@ -45,13 +52,6 @@ typedef struct appdata {
 		DEVICES,
 		GESTURES
 	} state;
-
-	/* BT Discovery state */
-	enum {
-		STARTING,
-		DISCOVERING,
-		IDLE
-	} discovery_state;
 } appdata_s;
 
 void

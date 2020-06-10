@@ -80,8 +80,9 @@ app_create(void *data)
 	appdata_s *ad = data;
 
 	create_base_gui(ad);
-	bt_init(ad);
 	push_menu(ad);
+
+	bt_init();
 
 	return true;
 }

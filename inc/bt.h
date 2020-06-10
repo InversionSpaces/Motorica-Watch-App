@@ -9,18 +9,18 @@
 #define BT_H_
 
 #include <bluetooth.h>
-#include <app_control.h>
-#include <dlog.h>
 
 #include "motorica.h"
 
-void bt_init(appdata_s* ad);
+void bt_init(void);
+
+void bt_deinit(void);
 
 bool bt_is_on(void);
 
 int bt_onoff_operation(void);
 
-int bt_discover(appdata_s* ad);
+int bt_discover(bt_adapter_device_discovery_state_changed_cb discovery_cb, void *cb_data);
 
 
 #endif /* BT_H_ */

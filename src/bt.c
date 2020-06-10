@@ -4,58 +4,26 @@
  *  Created on: May 26, 2020
  *      Author: inv
  */
+#include <app_control.h>
 
 #include "bt.h"
 
-static void
-discovery_cb(int result, bt_adapter_device_discovery_state_e discovery_state,
-             bt_adapter_device_discovery_info_s *discovery_info, void* user_data)
-{
-	appdata_s* ad = user_data;
+void
+bt_init(void) {
+	bt_error_e ret = bt_initialize();
 
-    if (result != BT_ERROR_NONE) {
-        dlog_print(DLOG_ERROR, LOG_TAG, "[adapter_device_discovery_state_changed_cb] failed! result(%d).", result);
-
-        return;
-    }
-
-    switch (discovery_state) {
-    case BT_ADAPTER_DEVICE_DISCOVERY_STARTED:
-    	ad->discovery_state = DISCOVERING;
-        dlog_print(DLOG_INFO, LOG_TAG, "BT_ADAPTER_DEVICE_DISCOVERY_STARTED");
-        break;
-    case BT_ADAPTER_DEVICE_DISCOVERY_FINISHED:
-    	ad->discovery_state = IDLE;
-        dlog_print(DLOG_INFO, LOG_TAG, "BT_ADAPTER_DEVICE_DISCOVERY_FINISHED");
-        break;
-    case BT_ADAPTER_DEVICE_DISCOVERY_FOUND:
-        dlog_print(DLOG_INFO, LOG_TAG, "BT_ADAPTER_DEVICE_DISCOVERY_FOUND");
-        if (discovery_info != NULL) {
-            dlog_print(DLOG_INFO, LOG_TAG, "Device Address: %s", discovery_info->remote_address);
-            dlog_print(DLOG_INFO, LOG_TAG, "Device Name is: %s", discovery_info->remote_name);
-        }
-        break;
-    }
+	if (ret != BT_ERROR_NONE)
+	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_initialize] failed.");
 }
 
 void
-bt_init(appdata_s* ad) {
-	bt_error_e ret = bt_initialize();
-	if (ret != BT_ERROR_NONE) {
-	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_initialize] failed.");
-	    return;
-	}
+bt_deinit(void) {
+	bt_error_e ret = bt_deinitialize();
 
-	ret = bt_adapter_set_device_discovery_state_changed_cb(discovery_cb, ad);
 	if (ret != BT_ERROR_NONE)
-		dlog_print(DLOG_ERROR, LOG_TAG,
-				"[bt_adapter_set_device_discovery_state_changed_cb] failed.");
-	else
-		dlog_print(DLOG_INFO, LOG_TAG,
-				"[bt_initialize&bt_adapter_set_device_discovery_state_changed_cb] didn't fail.");
-
-	ad->discovery_state = IDLE;
+	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_deinitialize] failed.");
 }
+
 
 int
 bt_onoff_operation(void) {
@@ -102,15 +70,20 @@ bt_is_on(void) {
 	return true;
 }
 
-
 int
-bt_discover(appdata_s* ad) {
-	bt_error_e ret = bt_adapter_start_device_discovery();
+bt_discover(bt_adapter_device_discovery_state_changed_cb discovery_cb, void *cb_data) {
+	bt_error_e ret = bt_adapter_set_device_discovery_state_changed_cb(discovery_cb, cb_data);
 
 	if (ret != BT_ERROR_NONE) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed.");
-		ad->discovery_state = STARTING;
+		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_set_device_discovery_state_changed_cb] failed.");
+
+		return ret;
 	}
+
+	ret = bt_adapter_start_device_discovery();
+
+	if (ret != BT_ERROR_NONE)
+		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed.");
 	else
 		dlog_print(DLOG_INFO, LOG_TAG, "[bt_adapter_start_device_discovery] didn't fail.");
 

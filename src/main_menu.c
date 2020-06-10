@@ -7,6 +7,11 @@
 
 #include "main_menu.h"
 
+#include "gestures.h"
+#include "devices.h"
+#include "glist.h"
+#include "bt.h"
+
 static void
 gestures_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	appdata_s *ad = data;
