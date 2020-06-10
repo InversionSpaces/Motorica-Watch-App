@@ -7,6 +7,8 @@
 #include <efl_extension.h>
 #include <dlog.h>
 
+#include "glist.h"
+
 #ifdef  LOG_TAG
 #undef  LOG_TAG
 #endif
@@ -25,8 +27,10 @@ typedef struct appdata {
 	/* -------- */
 
 	/* Main menu */
-	Evas_Object *glist;
-	Evas_Object *circle_glist;
+	glist_s menu_list;
+
+	/* Devices */
+	glist_s dev_list;
 
 	/* Gestures */
 	Evas_Object *gestures_box;
@@ -34,10 +38,6 @@ typedef struct appdata {
 	Evas_Object *gestures_circle_scroller;
 	Evas_Object *gestures_padding_start;
 	Evas_Object *gestures_padding_end;
-
-	/* Devices */
-	Evas_Object *devices_glist;
-	Evas_Object *devices_circle_glist;
 
 	/* App state */
 	enum {

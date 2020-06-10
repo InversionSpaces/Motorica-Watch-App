@@ -26,21 +26,16 @@ devices_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	else bt_onoff_operation();
 }
 
-static glist_entry_s entries[] = {
-		{"Motorica", "title", NULL},
-		{"Devices", "entry", devices_clicked_cb},
-		{"Gestures", "entry", gestures_clicked_cb},
-		{NULL, "padding", NULL}
-};
-
 void
 push_menu(appdata_s* ad) {
-	size_t size = sizeof(entries) / sizeof(glist_entry_s);
-	lists_s ret = glist_create(ad, entries, size);
-	ad->glist = ret.glist;
-	ad->circle_glist = ret.circle_glist;
+	ad->menu_list = glist_create(ad->navif, ad->csurf);
 
-	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->glist, "empty");
+	glist_append_title(ad->menu_list, "Motorica");
+	glist_append_entry(ad->menu_list, "Devices", devices_clicked_cb, ad);
+	glist_append_entry(ad->menu_list, "Gestures", gestures_clicked_cb, ad);
+	glist_append_padding(ad->menu_list);
+
+	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->menu_list.list, "empty");
 
 	ad->state = MAIN_MENU;
 }

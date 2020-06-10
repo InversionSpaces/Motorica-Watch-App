@@ -17,19 +17,13 @@ refresh_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 		bt_discover(ad);
 }
 
-static glist_entry_s entries[] = {
-		{"Devices", "title", NULL},
-		{"Refresh", "entry", refresh_clicked_cb},
-		{NULL, "padding", NULL}
-};
-
 void push_devices(appdata_s* ad) {
-	size_t size = sizeof(entries) / sizeof(glist_entry_s);
-	lists_s ret = glist_create(ad, entries, size);
-	ad->devices_glist = ret.glist;
-	ad->devices_circle_glist = ret.circle_glist;
+	ad->dev_list = glist_create(ad->navif, ad->csurf);
+	glist_append_title(ad->dev_list, "Devices");
+	glist_append_entry(ad->dev_list, "Refresh", refresh_clicked_cb, ad);
+	glist_append_padding(ad->dev_list);
 
-	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->devices_glist, "empty");
+	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->dev_list.list, "empty");
 
 	ad->state = DEVICES;
 }
