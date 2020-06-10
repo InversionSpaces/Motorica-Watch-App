@@ -7,8 +7,6 @@
 #include <efl_extension.h>
 #include <dlog.h>
 
-#include "bt.h"
-
 #ifdef  LOG_TAG
 #undef  LOG_TAG
 #endif
@@ -41,11 +39,19 @@ typedef struct appdata {
 	Evas_Object *devices_glist;
 	Evas_Object *devices_circle_glist;
 
+	/* App state */
 	enum {
 		MAIN_MENU,
 		DEVICES,
 		GESTURES
 	} state;
+
+	/* BT Discovery state */
+	enum {
+		STARTING,
+		DISCOVERING,
+		IDLE
+	} discovery_state;
 } appdata_s;
 
 void

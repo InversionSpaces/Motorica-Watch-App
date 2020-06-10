@@ -14,11 +14,13 @@
 
 #include "motorica.h"
 
-void bt_init(void);
+void bt_init(appdata_s* ad);
 
-Eina_Bool bt_is_on(void);
+bool bt_is_on(void);
 
 int bt_onoff_operation(void);
+
+int bt_discover(appdata_s* ad);
 
 
 #endif /* BT_H_ */

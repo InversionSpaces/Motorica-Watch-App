@@ -10,6 +10,7 @@
 
 #include "motorica.h"
 #include "glist.h"
+#include "bt.h"
 
 void push_devices(appdata_s* ad);
 

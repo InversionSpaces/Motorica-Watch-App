@@ -7,9 +7,19 @@
 
 #include "devices.h"
 
+static void
+refresh_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
+	dlog_print(DLOG_INFO, LOG_TAG, "Refresh clicked");
+
+	appdata_s* ad = data;
+
+	if (ad->discovery_state == IDLE)
+		bt_discover(ad);
+}
+
 static glist_entry_s entries[] = {
 		{"Devices", "title", NULL},
-		{"Refresh", "entry", NULL},
+		{"Refresh", "entry", refresh_clicked_cb},
 		{NULL, "padding", NULL}
 };
 

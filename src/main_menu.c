@@ -12,7 +12,6 @@ gestures_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	appdata_s *ad = data;
 
 	elm_naviframe_item_pop(ad->navif);
-
 	push_gestures(ad);
 }
 
@@ -22,11 +21,9 @@ devices_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 
 	if (bt_is_on()) {
 		elm_naviframe_item_pop(ad->navif);
-
 		push_devices(ad);
 	}
-	else
-		bt_onoff_operation();
+	else bt_onoff_operation();
 }
 
 static glist_entry_s entries[] = {

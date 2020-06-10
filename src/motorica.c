@@ -1,5 +1,6 @@
 #include "motorica.h"
 #include "main_menu.h"
+#include "bt.h"
 
 void
 get_res_path(const char* path, char* out, int max_len) {
@@ -20,6 +21,7 @@ static void
 win_back_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	appdata_s *ad = data;
+
 	switch (ad->state) {
 	case DEVICES:
 	case GESTURES:
@@ -75,14 +77,10 @@ create_base_gui(appdata_s *ad)
 static bool
 app_create(void *data)
 {
-	/* Hook to take necessary actions before main event loop starts
-		Initialize UI resources and application's data
-		If this function returns true, the main loop of application starts
-		If this function returns false, the application is terminated */
 	appdata_s *ad = data;
 
 	create_base_gui(ad);
-	bt_init();
+	bt_init(ad);
 	push_menu(ad);
 
 	return true;
