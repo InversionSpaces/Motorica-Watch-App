@@ -27,18 +27,6 @@ typedef struct appdata {
 	Eext_Circle_Surface *csurf;
 	/* -------- */
 
-	/* Main menu */
-	glist_s menu_list;
-
-	/* Devices */
-	glist_s dev_list;
-	GList *discovered;
-
-	enum {
-		IDLE,
-		DISCOVERING
-	} discovery_state;
-
 	/* Gestures */
 	Evas_Object *gestures_box;
 	Evas_Object *gestures_scroller;

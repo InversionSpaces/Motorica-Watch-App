@@ -71,16 +71,8 @@ bt_is_on(void) {
 }
 
 int
-bt_discover(bt_adapter_device_discovery_state_changed_cb discovery_cb, void *cb_data) {
-	bt_error_e ret = bt_adapter_set_device_discovery_state_changed_cb(discovery_cb, cb_data);
-
-	if (ret != BT_ERROR_NONE) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_set_device_discovery_state_changed_cb] failed.");
-
-		return ret;
-	}
-
-	ret = bt_adapter_start_device_discovery();
+bt_discover() {
+	bt_error_e ret = bt_adapter_start_device_discovery();
 
 	if (ret != BT_ERROR_NONE)
 		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed.");

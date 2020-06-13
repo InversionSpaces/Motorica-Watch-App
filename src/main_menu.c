@@ -12,6 +12,8 @@
 #include "glist.h"
 #include "bt.h"
 
+static glist_s menu_list = {NULL, NULL};
+
 static void
 gestures_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	appdata_s *ad = data;
@@ -33,14 +35,14 @@ devices_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 
 void
 push_menu(appdata_s* ad) {
-	ad->menu_list = glist_create(ad->navif, ad->csurf);
+	menu_list = glist_create(ad->navif, ad->csurf);
 
-	glist_append_title(ad->menu_list, "Motorica");
-	glist_append_entry(ad->menu_list, "Devices", devices_clicked_cb, ad);
-	glist_append_entry(ad->menu_list, "Gestures", gestures_clicked_cb, ad);
-	glist_append_padding(ad->menu_list);
+	glist_append_title(menu_list, "Motorica");
+	glist_append_entry(menu_list, "Devices", devices_clicked_cb, ad);
+	glist_append_entry(menu_list, "Gestures", gestures_clicked_cb, ad);
+	glist_append_padding(menu_list);
 
-	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, ad->menu_list.list, "empty");
+	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, menu_list.list, "empty");
 
 	ad->state = MAIN_MENU;
 }
