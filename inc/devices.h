@@ -10,6 +10,10 @@
 
 #include "motorica.h"
 
-void push_devices(appdata_s* ad);
+void
+push_devices(appdata_s* ad);
+
+void
+pop_devices(appdata_s* ad);
 
 #endif /* DEVICES_H_ */

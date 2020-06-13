@@ -20,7 +20,7 @@ bool bt_is_on(void);
 
 int bt_onoff_operation(void);
 
-int bt_discover(bt_adapter_device_discovery_state_changed_cb discovery_cb, void *cb_data);
+int bt_discover();
 
 
 #endif /* BT_H_ */

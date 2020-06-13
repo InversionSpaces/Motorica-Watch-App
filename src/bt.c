@@ -75,7 +75,7 @@ bt_discover() {
 	bt_error_e ret = bt_adapter_start_device_discovery();
 
 	if (ret != BT_ERROR_NONE)
-		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed.");
+		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed with result (%d).", ret);
 	else
 		dlog_print(DLOG_INFO, LOG_TAG, "[bt_adapter_start_device_discovery] didn't fail.");
 

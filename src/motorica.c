@@ -1,5 +1,6 @@
 #include "motorica.h"
 #include "main_menu.h"
+#include "devices.h"
 #include "bt.h"
 
 void
@@ -24,8 +25,10 @@ win_back_cb(void *data, Evas_Object *obj, void *event_info)
 
 	switch (ad->state) {
 	case DEVICES:
+		pop_devices(ad);
+		push_menu(ad);
+		break;
 	case GESTURES:
-		elm_naviframe_item_pop(ad->navif);
 		push_menu(ad);
 		break;
 	case MAIN_MENU:

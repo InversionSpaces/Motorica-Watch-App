@@ -15,32 +15,22 @@ typedef struct {
 	Evas_Object *circle_list;
 } glist_s;
 
-char*
-simple_text_get(void *data, Evas_Object *obj, const char *part);
+glist_s*
+glist_create(Evas_Object *parent, Eext_Circle_Surface *circle_surface,
+				Evas_Smart_Cb clicked_cb, void *cb_data);
 
 Elm_Object_Item *
-glist_append(glist_s glist, const char *style,
-		     Elm_Gen_Item_Text_Get_Cb text_get_cb, void *text_data,
-			 Evas_Smart_Cb clicked_cb, void *clicked_data);
-
-#define glist_append_title(glist, title) \
-	glist_append(glist, "title", simple_text_get, (void*)title, NULL, NULL)
-
-#define glist_append_entry(glist, text, clicked_cb, cb_data) \
-	glist_append(glist, "1text", simple_text_get, (void*)text, clicked_cb, cb_data)
-
-#define glist_append_padding(glist) \
-	glist_append(glist, "padding", NULL, NULL, NULL, NULL)
+glist_append(glist_s *glist, const char *style, Elm_Gen_Item_Text_Get_Cb text_get_cb, void *item_data);
 
 Elm_Object_Item *
-glist_insert_after_first(glist_s glist, const char *style,
-		     Elm_Gen_Item_Text_Get_Cb text_get_cb, void *text_data,
-			 Evas_Smart_Cb clicked_cb, void *clicked_data);
+glist_insert_after_first(glist_s *glist, const char *style, Elm_Gen_Item_Text_Get_Cb text_get_cb, void *item_data);
 
-glist_s
-glist_create(Evas_Object* parent, Eext_Circle_Surface* circle_surface);
+typedef void (*free_func_t)(void*);
 
 void
-glist_clear(glist_s glist);
+glist_clear(glist_s *glist, free_func_t free_func);
+
+void
+glist_free(glist_s *glist, free_func_t free_func);
 
 #endif /* GLIST_H_ */

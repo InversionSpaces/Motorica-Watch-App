@@ -10,6 +10,10 @@
 
 #include "motorica.h"
 
-void push_menu(appdata_s* ad);
+void
+push_menu(appdata_s* ad);
+
+void
+pop_menu(appdata_s* ad);
 
 #endif /* MAIN_MENU_H_ */

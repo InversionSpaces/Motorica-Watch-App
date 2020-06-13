@@ -10,38 +10,49 @@
 #include "glist.h"
 #include "bt.h"
 
-static glist_s dev_list = {NULL, NULL};
-
-static enum {
+typedef enum {
 	IDLE,
 	DISCOVERING
-} discovery_state = IDLE;
+} disc_state_e;
 
 typedef struct {
-	enum {
-		NOT_BONDED,
-		UNBONDING,
-		BONDING,
-		BONDED
-	} state;
-
+	bool is_bonded;
 	char* name;
 	char* address;
 } dev_s;
 
-static GList *discovered = NULL;
+typedef enum {
+	TITLE,
+	DEVICE,
+	REFRESH,
+} item_type_e;
 
-static void
-refresh_clicked_cb(void *data, Evas_Object *obj, void *event_info);
+typedef struct {
+	item_type_e type;
+	dev_s *info;
+} item_data_s;
+
+static glist_s *dev_list = NULL;
+
+static disc_state_e disc_state = IDLE;
 
 static char*
-refresh_text_get_cb(void *data, Evas_Object *obj, const char *part);
-
-static char*
-dev_text_get_cb(void *data, Evas_Object *obj, const char *part);
+text_get_cb(void *data, Evas_Object *obj, const char *part);
 
 static void
-dev_clicked_cb(void *data, Evas_Object *obj, void *event_info);
+clicked_cb(void *data, Evas_Object *obj, void *event_info);
+
+static char*
+refresh_text_get_cb(const char *part);
+
+static void
+refresh_clicked_cb();
+
+static char*
+dev_text_get_cb(dev_s *info, const char *part);
+
+static void
+dev_clicked_cb(dev_s *info);
 
 static void
 discovery_cb(int result, bt_adapter_device_discovery_state_e discovery_state,
@@ -53,25 +64,85 @@ bond_created_cb(int result, bt_device_info_s *device_info, void *user_data);
 void
 bond_destroyed_cb(int result, char* remote_address, void *user_data);
 
-void
-dev_s_free(gpointer data);
-
-void
-fill_dev_glist();
-
 /*-*/
 
-void
-fill_dev_glist() {
-	glist_append_title(dev_list, "Devices");
-	glist_append(dev_list, "1text", refresh_text_get_cb, NULL, refresh_clicked_cb, NULL);
-	glist_append_padding(dev_list);
+static item_data_s*
+item_data_create(item_type_e type, dev_s *info) {
+	item_data_s* retval = malloc(sizeof(item_data_s));
+	if (retval == NULL) {
+		dlog_print(DLOG_ERROR, LOG_TAG, "[malloc] failed");
+		return NULL;
+	}
+
+	retval->type = type;
+	retval->info = info;
+
+	return retval;
+}
+
+static void
+item_data_free(void *data) {
+	if (data == NULL) return;
+	item_data_s *item_data = data;
+
+	if (item_data->type == DEVICE) {
+		free(item_data->info->name);
+		free(item_data->info->address);
+		free(item_data->info);
+	}
+
+	free(data);
+}
+
+static void
+fill_dev_list() {
+	glist_append(dev_list, "title", text_get_cb, item_data_create(TITLE, NULL));
+	glist_append(dev_list, "1text", text_get_cb, item_data_create(REFRESH, NULL));
+	glist_append(dev_list, "padding", NULL, NULL);
+}
+
+static void
+clear_dev_list() {
+	glist_clear(dev_list, item_data_free);
 }
 
 static char*
-dev_text_get_cb(void *data, Evas_Object *obj, const char *part) {
-	dev_s *info = data;
+text_get_cb(void *data, Evas_Object *obj, const char *part) {
+	item_data_s *item_data = data;
 
+	switch (item_data->type) {
+	case TITLE:
+		return strdup("Devices");
+	case DEVICE:
+		return dev_text_get_cb(item_data->info, part);
+	case REFRESH:
+		return refresh_text_get_cb(part);
+	default:
+		return NULL;
+	}
+}
+
+void
+clicked_cb(void *data, Evas_Object *obj, void *event_info) {
+	Elm_Object_Item *it = event_info;
+	item_data_s *item_data = elm_object_item_data_get(it);
+
+	if (item_data == NULL) return;
+
+	switch (item_data->type) {
+	default:
+		break;
+	case DEVICE:
+		dev_clicked_cb(item_data->info);
+		break;
+	case REFRESH:
+		refresh_clicked_cb();
+		break;
+	}
+}
+
+static char*
+dev_text_get_cb(dev_s *info, const char *part) {
 	if (!strcmp(part, "elm.text")) {
 		if (info->name == NULL)
 			return NULL;
@@ -79,16 +150,9 @@ dev_text_get_cb(void *data, Evas_Object *obj, const char *part) {
 		return strdup(info->name);
 	}
 	else if (!strcmp(part, "elm.text.1")) {
-		switch (info->state) {
-		case BONDED:
+		if (info->is_bonded)
 			return strdup("Bonded");
-		case BONDING:
-			return strdup("Bonding...");
-		case NOT_BONDED:
-			return strdup("Tap to bond");
-		case UNBONDING:
-			return strdup("Unbonding...");
-		}
+		return strdup("Tap to bond");
 	}
 
 	dlog_print(DLOG_ERROR, LOG_TAG, "Devices [text_get_cb] unexpected part %s", part);
@@ -97,39 +161,29 @@ dev_text_get_cb(void *data, Evas_Object *obj, const char *part) {
 }
 
 static void
-dev_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
-	dev_s *info = data;
-
-	switch (info->state) {
-	case BONDED:
-		info->state = UNBONDING;
-		if (bt_device_destroy_bond(info->address) != BT_ERROR_NONE)
-			info->state = BONDED;
-		else
-			elm_genlist_realized_items_update(dev_list.list);
-		break;
-	case BONDING:
-	case UNBONDING:
-		break;
-	case NOT_BONDED:
-		info->state = BONDING;
-		if (bt_device_create_bond(info->address) != BT_ERROR_NONE)
-			info->state = NOT_BONDED;
-		else
-			elm_genlist_realized_items_update(dev_list.list);
-		break;
+dev_clicked_cb(dev_s *info) {
+	if (info->is_bonded) {
+		bt_error_e ret = bt_device_destroy_bond(info->address);
+		if (ret != BT_ERROR_NONE)
+			dlog_print(DLOG_ERROR, LOG_TAG, "[bt_device_destroy_bond] failed");
+	}
+	else {
+		bt_error_e ret = bt_device_create_bond(info->address);
+		if (ret != BT_ERROR_NONE)
+			dlog_print(DLOG_ERROR, LOG_TAG, "[bt_device_create_bond] failed");
 	}
 }
 
 static char*
-refresh_text_get_cb(void *data, Evas_Object *obj, const char *part) {
+refresh_text_get_cb(const char *part) {
 	if (!strcmp(part, "elm.text")) {
-		if (discovery_state == DISCOVERING)
+		if (disc_state == DISCOVERING)
 			return strdup("Refreshing...");
-		else if (discovery_state == IDLE)
+		else if (disc_state == IDLE)
 			return strdup("Refresh");
 
 		dlog_print(DLOG_ERROR, LOG_TAG, "[refresh text_get_cb] unexpected discovery state");
+
 		return NULL;
 	}
 
@@ -139,31 +193,18 @@ refresh_text_get_cb(void *data, Evas_Object *obj, const char *part) {
 }
 
 static void
-refresh_clicked_cb(void *data, Evas_Object *obj, void *event_info) {
-	if (discovery_state == DISCOVERING) return;
+refresh_clicked_cb() {
+	if (disc_state == DISCOVERING) return;
 
-	discovery_state = DISCOVERING;
+	disc_state = DISCOVERING;
 
-	if (discovered != NULL) {
-		g_list_free_full(discovered, dev_s_free);
-		discovered = NULL;
+	clear_dev_list();
+	fill_dev_list();
 
-		glist_clear(dev_list);
-		fill_dev_glist();
-	}
-
-	if (bt_discover(discovery_cb, NULL) != BT_ERROR_NONE)
-		discovery_state = IDLE;
+	if (bt_discover() != BT_ERROR_NONE)
+		disc_state = IDLE;
 	else
-		elm_genlist_realized_items_update(dev_list.list);
-}
-
-void
-dev_s_free(gpointer data) {
-	dev_s *info = data;
-	free(info->name);
-	free(info->address);
-	free(info);
+		elm_genlist_realized_items_update(dev_list->list);
 }
 
 static void
@@ -173,8 +214,8 @@ discovery_cb(int result, bt_adapter_device_discovery_state_e state,
     if (result != BT_ERROR_NONE) {
         dlog_print(DLOG_ERROR, LOG_TAG, "[discovery_cb] failed! result(%d).", result);
 
-        discovery_state = IDLE;
-        elm_genlist_realized_items_update(dev_list.list);
+        disc_state = IDLE;
+        elm_genlist_realized_items_update(dev_list->list);
 
         return;
     }
@@ -186,8 +227,8 @@ discovery_cb(int result, bt_adapter_device_discovery_state_e state,
     case BT_ADAPTER_DEVICE_DISCOVERY_FINISHED:
         dlog_print(DLOG_INFO, LOG_TAG, "BT_ADAPTER_DEVICE_DISCOVERY_FINISHED");
 
-        discovery_state = IDLE;
-        elm_genlist_realized_items_update(dev_list.list);
+        disc_state = IDLE;
+        elm_genlist_realized_items_update(dev_list->list);
 
         break;
     case BT_ADAPTER_DEVICE_DISCOVERY_FOUND:
@@ -204,12 +245,11 @@ discovery_cb(int result, bt_adapter_device_discovery_state_e state,
 
 			info->address = strdup(discovery_info->remote_address);
 			info->name = strdup(discovery_info->remote_name);
-			info->state = discovery_info->is_bonded ? BONDED : NOT_BONDED;
-			discovered = g_list_append(discovered, (gpointer)info);
+			info->is_bonded = discovery_info->is_bonded;
 
 			glist_insert_after_first(
-					dev_list, "2text", dev_text_get_cb, info, dev_clicked_cb, info
-				);
+				dev_list, "2text", text_get_cb, item_data_create(DEVICE, info)
+			);
         }
         break;
     }
@@ -225,15 +265,20 @@ bond_created_cb(int result, bt_device_info_s *device_info, void *user_data)
     }
 
     if (device_info != NULL) {
-    	for (GList* it = discovered; it != NULL; it = it->next) {
-    		dev_s* info = it->data;
+    	for (	Elm_Widget_Item *it = elm_genlist_first_item_get(dev_list->list);
+    			it != NULL;
+    			it = elm_genlist_item_next_get(it)) {
+    		item_data_s *item_data = elm_object_item_data_get(it);
+    		if (item_data == NULL || item_data->type != DEVICE) continue;
+
+    		dev_s *info = item_data->info;
     		if (!strcmp(info->address, device_info->remote_address)) {
-    			info->state = BONDED;
+    			info->is_bonded = true;
     			dlog_print(DLOG_ERROR, LOG_TAG, "%s is bonded", info->name);
     		}
     	}
 
-    	elm_genlist_realized_items_update(dev_list.list);
+    	elm_genlist_realized_items_update(dev_list->list);
     }
 }
 
@@ -246,34 +291,47 @@ bond_destroyed_cb(int result, char* remote_address, void *user_data) {
 	}
 
 	if (remote_address != NULL) {
-		for (GList* it = discovered; it != NULL; it = it->next) {
-			dev_s* info = it->data;
+		for (	Elm_Widget_Item *it = elm_genlist_first_item_get(dev_list->list);
+		    	it != NULL;
+		    	it = elm_genlist_item_next_get(it)) {
+			item_data_s *item_data = elm_object_item_data_get(it);
+			if (item_data == NULL || item_data->type != DEVICE) continue;
+
+			dev_s *info = item_data->info;
 			if (!strcmp(info->address, remote_address)) {
-				info->state = NOT_BONDED;
-				dlog_print(DLOG_ERROR, LOG_TAG, "%s is not bonded", info->name);
+				info->is_bonded = false;
+				dlog_print(DLOG_ERROR, LOG_TAG, "%s is bonded", info->name);
 			}
 		}
 
-		elm_genlist_realized_items_update(dev_list.list);
+		elm_genlist_realized_items_update(dev_list->list);
 	}
 }
 
 void push_devices(appdata_s* ad) {
+	dev_list = glist_create(ad->navif, ad->csurf, clicked_cb, NULL);
+	fill_dev_list();
+
+	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, dev_list->list, "empty");
+
 	bt_adapter_set_device_discovery_state_changed_cb(discovery_cb, NULL);
 	bt_device_set_bond_created_cb(bond_created_cb, NULL);
 	bt_device_set_bond_destroyed_cb(bond_destroyed_cb, NULL);
 
-	if (discovered != NULL) {
-			g_list_free_full(discovered, dev_s_free);
-			discovered = NULL;
-	}
-
-	dev_list = glist_create(ad->navif, ad->csurf);
-	fill_dev_glist();
-
-	elm_naviframe_item_push(ad->navif, NULL, NULL, NULL, dev_list.list, "empty");
-
 	ad->state = DEVICES;
+}
+
+void pop_devices(appdata_s* ad) {
+	bt_adapter_unset_device_discovery_state_changed_cb();
+	bt_device_unset_bond_created_cb();
+	bt_device_unset_bond_destroyed_cb();
+
+	bt_adapter_stop_device_discovery();
+	bt_device_cancel_bonding();
+
+	glist_free(dev_list, item_data_free);
+	dev_list = NULL;
+	disc_state = IDLE;
 }
 
 
