@@ -4,9 +4,10 @@
  *  Created on: May 26, 2020
  *      Author: inv
  */
-#include <app_control.h>
-
 #include "bt.h"
+
+#include <bluetooth.h>
+#include <app_control.h>
 
 void
 bt_init(void) {

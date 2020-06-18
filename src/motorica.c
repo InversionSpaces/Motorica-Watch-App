@@ -1,6 +1,9 @@
 #include "motorica.h"
+
 #include "main_menu.h"
 #include "devices.h"
+#include "bond_devices.h"
+#include "connect_devices.h"
 #include "bt.h"
 
 void
@@ -24,6 +27,14 @@ win_back_cb(void *data, Evas_Object *obj, void *event_info)
 	appdata_s *ad = data;
 
 	switch (ad->state) {
+	case CONNECT_DEVICES:
+		pop_connect_devices(ad);
+		push_devices(ad);
+		break;
+	case BOND_DEVICES:
+		pop_bond_devices(ad);
+		push_devices(ad);
+		break;
 	case DEVICES:
 		pop_devices(ad);
 		push_menu(ad);

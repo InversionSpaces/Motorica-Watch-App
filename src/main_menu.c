@@ -7,8 +7,8 @@
 
 #include "main_menu.h"
 
-#include "gestures.h"
 #include "devices.h"
+#include "gestures.h"
 #include "glist.h"
 #include "bt.h"
 
@@ -31,8 +31,14 @@ push_menu(appdata_s* ad);
 void
 pop_menu(appdata_s* ad);
 
+static char*
+text_get_cb(void *data, Evas_Object *obj, const char *part);
+
 static void
 clicked_cb(void *data, Evas_Object *obj, void *event_info);
+
+static item_data_s*
+item_data_create(item_type_e type, appdata_s* ad);
 
 static void
 item_data_free(void *data);
@@ -64,16 +70,12 @@ clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	Elm_Object_Item *it = event_info;
 	item_data_s *item_data = elm_object_item_data_get(it);
 
-	appdata_s *ad = item_data->ad;
 	item_type_e type = item_data->type;
+	appdata_s *ad = item_data->ad;
 
 	switch (type) {
 	case DEVICES:
-		if (bt_is_on()) {
-			pop_menu(ad);
-			push_devices(ad);
-		}
-		else bt_onoff_operation();
+		push_devices(ad);
 		break;
 	case GESTURES:
 		pop_menu(ad);

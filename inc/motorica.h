@@ -24,6 +24,15 @@ typedef struct appdata {
 	Eext_Circle_Surface *csurf;
 	/* -------- */
 
+	/* Device */
+	struct {
+		bool is_present;
+		bool is_connected;
+
+		char *name;
+		char *address;
+	};
+
 	/* Gestures */
 	Evas_Object *gestures_box;
 	Evas_Object *gestures_scroller;
@@ -35,6 +44,8 @@ typedef struct appdata {
 	enum {
 		MAIN_MENU,
 		DEVICES,
+		CONNECT_DEVICES,
+		BOND_DEVICES,
 		GESTURES
 	} state;
 } appdata_s;

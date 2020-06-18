@@ -8,8 +8,6 @@
 #ifndef BT_H_
 #define BT_H_
 
-#include <bluetooth.h>
-
 #include "motorica.h"
 
 void bt_init(void);
