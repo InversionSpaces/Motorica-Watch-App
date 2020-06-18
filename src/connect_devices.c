@@ -102,12 +102,16 @@ clicked_cb(void *data, Evas_Object *obj, void *event_info) {
 	Elm_Object_Item *it = event_info;
 	item_data_s *item_data = elm_object_item_data_get(it);
 
+	if (item_data == NULL) return;
+
 	item_type_e type = item_data->type;
 	dev_s *info = item_data->info;
 
 	if (type != DEVICE) return;
 
-
+	bt_error_e ret = bt_socket_connect_rfcomm(info->address, "00001101-0000-1000-8000-00805F9B34FB");
+	if (ret != BT_ERROR_NONE)
+	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_socket_connect_rfcomm] failed.");
 }
 
 static char*

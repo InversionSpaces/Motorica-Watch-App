@@ -10,9 +10,15 @@
 
 #include "motorica.h"
 
+/*
+ * Push main menu to naviframe stack
+ */
 void
 push_menu(appdata_s* ad);
 
+/*
+ * Pop main menu from naviframe stack
+ */
 void
 pop_menu(appdata_s* ad);
 

@@ -26,7 +26,6 @@ typedef struct appdata {
 
 	/* Device */
 	struct {
-		bool is_present;
 		bool is_connected;
 
 		char *name;

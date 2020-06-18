@@ -96,7 +96,7 @@ app_create(void *data)
 	create_base_gui(ad);
 	push_menu(ad);
 
-	bt_init();
+	bt_init(ad);
 
 	return true;
 }
@@ -122,7 +122,7 @@ app_resume(void *data)
 static void
 app_terminate(void *data)
 {
-	/* Release all resources. */
+	bt_deinit();
 }
 
 static void

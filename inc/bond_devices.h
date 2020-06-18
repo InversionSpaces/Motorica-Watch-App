@@ -10,9 +10,15 @@
 
 #include "motorica.h"
 
+/*
+ * Push bond devices menu to naviframe stack
+ */
 void
 push_bond_devices(appdata_s* ad);
 
+/*
+ * Pop bond devices menu from naviframe stack
+ */
 void
 pop_bond_devices(appdata_s* ad);
 

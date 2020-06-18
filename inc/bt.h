@@ -10,7 +10,7 @@
 
 #include "motorica.h"
 
-void bt_init(void);
+void bt_init(appdata_s *ad);
 
 void bt_deinit(void);
 
@@ -18,7 +18,7 @@ bool bt_is_on(void);
 
 int bt_onoff_operation(void);
 
-int bt_discover();
+int bt_discover(void);
 
 
 #endif /* BT_H_ */

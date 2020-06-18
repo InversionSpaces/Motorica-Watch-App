@@ -10,11 +10,51 @@
 #include <app_control.h>
 
 void
-bt_init(void) {
+socket_connection_state_changed(int result, bt_socket_connection_state_e connection_state,
+                                bt_socket_connection_s *connection, void *user_data)
+{
+    if (result != BT_ERROR_NONE) {
+        dlog_print(DLOG_ERROR, LOG_TAG, "[socket_connection_state_changed_cb] failed. result =%d.", result);
+
+        return;
+    }
+
+    if (connection_state == BT_SOCKET_CONNECTED) {
+        dlog_print(DLOG_INFO, LOG_TAG, "Callback: Connected.");
+        if (connection != NULL) {
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: Socket of connection - %d.", connection->socket_fd);
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: Role of connection - %d.", connection->local_role);
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: Address of connection - %s.", connection->remote_address);
+        } else {
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: No connection data");
+        }
+    } else {
+        dlog_print(DLOG_INFO, LOG_TAG, "Callback: Disconnected.");
+        if (connection != NULL) {
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: Socket of disconnection - %d.", connection->socket_fd);
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: Address of connection - %s.", connection->remote_address);
+        } else {
+            dlog_print(DLOG_INFO, LOG_TAG, "Callback: No connection data");
+        }
+    }
+}
+
+void
+bt_init(appdata_s *ad) {
 	bt_error_e ret = bt_initialize();
 
-	if (ret != BT_ERROR_NONE)
+	if (ret != BT_ERROR_NONE) {
 	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_initialize] failed.");
+
+	    return;
+	}
+
+	ret = bt_socket_set_connection_state_changed_cb(socket_connection_state_changed, ad);
+	if (ret != BT_ERROR_NONE) {
+	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_socket_set_connection_state_changed_cb] failed.");
+
+	    return;
+	}
 }
 
 void
