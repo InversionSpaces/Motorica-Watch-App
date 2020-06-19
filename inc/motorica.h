@@ -30,14 +30,7 @@ typedef struct appdata {
 
 		char *name;
 		char *address;
-	};
-
-	/* Gestures */
-	Evas_Object *gestures_box;
-	Evas_Object *gestures_scroller;
-	Evas_Object *gestures_circle_scroller;
-	Evas_Object *gestures_padding_start;
-	Evas_Object *gestures_padding_end;
+	} device;
 
 	/* App state */
 	enum {
@@ -49,6 +42,9 @@ typedef struct appdata {
 	} state;
 } appdata_s;
 
+/*
+ * Function to get absolute resource path
+ */
 void
 get_res_path(const char* path, char* out, int max_len);
 

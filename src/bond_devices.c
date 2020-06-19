@@ -245,8 +245,10 @@ dev_clicked_cb(dev_s *info) {
 static char*
 refresh_text_get_cb(const char *part) {
 	if (!strcmp(part, "elm.text")) {
-		if (disc_state == DISCOVERING) return strdup("Refreshing...");
-		else if (disc_state == IDLE) return strdup("Refresh");
+		if (disc_state == DISCOVERING)
+			return strdup("Refreshing...");
+		else if (disc_state == IDLE)
+			return strdup("Refresh");
 
 		dlog_print(DLOG_ERROR, LOG_TAG, "[refresh text_get_cb] unexpected discovery state");
 
@@ -327,6 +329,7 @@ discovery_cb(int result, bt_adapter_device_discovery_state_e state,
 				return;
 			}
 
+			// Insert item to devices list
 			glist_insert_after_first(
 				dev_list, "2text", text_get_cb, item_data
 			);

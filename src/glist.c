@@ -11,13 +11,19 @@
 #include "glist.h"
 #include "motorica.h"
 
-char*
-simple_text_get(void *data, Evas_Object *obj, const char *part) {
-	const char* text = data;
+/*
+ * Free glist item data with given free function
+ */
+static void
+items_data_free(glist_s *glist, free_func_t free_func);
 
-	if (text == NULL) return NULL;
-	return strdup(text);
-}
+/*
+ * Circle general list create
+ */
+static Evas_Object *
+circle_glist_create(Evas_Object *list, Eext_Circle_Surface *circle_surface);
+
+/*-*/
 
 Elm_Object_Item *
 glist_append(glist_s *glist, const char *style, Elm_Gen_Item_Text_Get_Cb text_get_cb, void *item_data) {
@@ -82,7 +88,9 @@ static Evas_Object *
 circle_glist_create(Evas_Object *list, Eext_Circle_Surface *circle_surface) {
 	Evas_Object *circle_list = eext_circle_object_genlist_add(list, circle_surface);
 
-	eext_circle_object_genlist_scroller_policy_set(circle_list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO);
+	eext_circle_object_genlist_scroller_policy_set(
+			circle_list, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_AUTO
+	);
 	eext_rotary_object_event_activated_set(circle_list, EINA_TRUE);
 
 	return circle_list;
@@ -101,7 +109,9 @@ glist_create(Evas_Object *parent, Eext_Circle_Surface *circle_surface,
 	retval->circle_list = circle_glist_create(retval->list, circle_surface);
 
 	if (clicked_cb != NULL)
-		evas_object_smart_callback_add(retval->list, "clicked,double", clicked_cb, cb_data);
+		evas_object_smart_callback_add(
+				retval->list, "clicked,double", clicked_cb, cb_data
+		);
 
 	evas_object_show(retval->list);
 

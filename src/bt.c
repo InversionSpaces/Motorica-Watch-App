@@ -9,7 +9,7 @@
 #include <bluetooth.h>
 #include <app_control.h>
 
-void
+static void
 socket_connection_state_changed(int result, bt_socket_connection_state_e connection_state,
                                 bt_socket_connection_s *connection, void *user_data)
 {
@@ -20,7 +20,7 @@ socket_connection_state_changed(int result, bt_socket_connection_state_e connect
     }
 
     if (connection_state == BT_SOCKET_CONNECTED) {
-        dlog_print(DLOG_INFO, LOG_TAG, "Callback: Connected.");
+        dlog_print(DLOG_INFO, LOG_TAG, "Connection: Connected.");
         if (connection != NULL) {
             dlog_print(DLOG_INFO, LOG_TAG, "Callback: Socket of connection - %d.", connection->socket_fd);
             dlog_print(DLOG_INFO, LOG_TAG, "Callback: Role of connection - %d.", connection->local_role);
@@ -29,7 +29,7 @@ socket_connection_state_changed(int result, bt_socket_connection_state_e connect
             dlog_print(DLOG_INFO, LOG_TAG, "Callback: No connection data");
         }
     } else {
-        dlog_print(DLOG_INFO, LOG_TAG, "Callback: Disconnected.");
+        dlog_print(DLOG_INFO, LOG_TAG, "Connection: Disconnected.");
         if (connection != NULL) {
             dlog_print(DLOG_INFO, LOG_TAG, "Callback: Socket of disconnection - %d.", connection->socket_fd);
             dlog_print(DLOG_INFO, LOG_TAG, "Callback: Address of connection - %s.", connection->remote_address);
@@ -49,6 +49,7 @@ bt_init(appdata_s *ad) {
 	    return;
 	}
 
+	// Set connection changed cb
 	ret = bt_socket_set_connection_state_changed_cb(socket_connection_state_changed, ad);
 	if (ret != BT_ERROR_NONE) {
 	    dlog_print(DLOG_ERROR, LOG_TAG, "[bt_socket_set_connection_state_changed_cb] failed.");
@@ -117,8 +118,6 @@ bt_discover() {
 
 	if (ret != BT_ERROR_NONE)
 		dlog_print(DLOG_ERROR, LOG_TAG, "[bt_adapter_start_device_discovery] failed with result (%d).", ret);
-	else
-		dlog_print(DLOG_INFO, LOG_TAG, "[bt_adapter_start_device_discovery] didn't fail.");
 
 	return ret;
 }

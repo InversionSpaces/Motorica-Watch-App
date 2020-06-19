@@ -10,6 +10,9 @@
 
 #include "motorica.h"
 
+/*
+ * Push gestures to naviframe stack
+ */
 void push_gestures(appdata_s *ad);
 
 #endif /* GESTURES_H_ */

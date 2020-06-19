@@ -10,9 +10,15 @@
 
 #include "motorica.h"
 
+/*
+ * Push connect devices menu to naviframe stack
+ */
 void
 push_connect_devices(appdata_s* ad);
 
+/*
+ * Pop connect devices menu from naviframe stack
+ */
 void
 pop_connect_devices(appdata_s* ad);
 
